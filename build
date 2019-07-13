@@ -1,0 +1,59 @@
+#!/bin/bash
+
+do_config=0
+do_make=0
+do_install=0
+do_debug_run=0
+
+while getopts ":c:m:i:d" OPT ; 
+do
+    case $OPT in
+        c)
+            do_config=1
+        ;;
+        m)
+            do_make=1
+        ;;
+        i)
+            do_install=1
+        ;;
+        d)
+            do_debug_run=1
+        ;;
+        ?)
+            do_make=1
+        ;;
+    esac
+done
+
+moudle_dir="/home/haob/softs/01-nginx/ngx/modules/mytest"
+soft_base_dir="/home/haob/softs"
+ngx_src_dir="./nginx-1.15.0"
+ngx_ins_pre_dir="$soft_base_dir/01-nginx/nginx"
+pcre_src_dir="$soft_base_dir/07-PCRE/pcre-8.43"
+opl_src_dir="$soft_base_dir/03-openssl/openssl-1.0.2o"
+zlib_src_dir="$soft_base_dir/06-zlib/zlib-1.2.11"
+
+cd $ngx_src_dir
+if [ $do_config -eq 1 ];then
+    ./configure --prefix=$ngx_ins_pre_dir \
+    --with-pcre=$pcre_src_dir \
+    --with-openssl=$opl_src_dir \
+    --with-openssl-opt="-d" \
+    --with-http_ssl_module \
+    --with-debug \
+    --with-zlib=$zlib_src_dir \
+    --add-module=$moudle_dir \
+    --with-cc-opt="-g -O0"
+fi
+if [ $do_make -eq 1 ];then
+    make
+fi
+if [ $do_install -eq 1 ];then
+    make install
+fi
+cd -
+
+if [ $do_debug_run -eq 1 ];then
+    ./nginx-1.15.0/objs/nginx -c $moudle_dir/nginx.conf
+fi
